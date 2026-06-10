@@ -627,41 +627,15 @@ BƯỚC 2: KIỂM TRA ĐỘ HOÀN THÀNH
 - Bỏ sót >30% nội dung → "isComplete": false, "score": 0.
 
 BƯỚC 3: CÔNG THỨC TÍNH ĐIỂM (THANG 10)
-┌─────────────────────────────────────────────────┐
-│  ĐIỂM NỀN = 7.0 điểm                           │
-│  (Đọc hết bài và đúng nội dung)                 │
-│                                                  │
-│  ĐIỂM CỘNG TỐI ĐA = 3.0 điểm                   │
-│  Chia đều cho 5 tiêu chí CEFR, mỗi tiêu chí    │
-│  tối đa +0.6 điểm:                              │
-│                                                  │
-│  1. Pronunciation (+0.0 ~ +0.6)                  │
-│     Phát âm chuẩn IPA, phân biệt nguyên âm/     │
-│     phụ âm, âm cuối rõ ràng.                    │
-│                                                  │
-│  2. Word Stress (+0.0 ~ +0.6)                    │
-│     Nhấn trọng âm đúng vị trí trong từ.         │
-│                                                  │
-│  3. Intonation (+0.0 ~ +0.6)                     │
-│     Ngữ điệu lên/xuống tự nhiên, phù hợp       │
-│     câu hỏi/câu kể/câu cảm thán.               │
-│                                                  │
-│  4. Fluency (+0.0 ~ +0.6)                        │
-│     Đọc trôi chảy, không ngắc ngứ, tốc độ      │
-│     phù hợp.                                    │
-│                                                  │
-│  5. Connected Speech (+0.0 ~ +0.6)               │
-│     Nối âm, đồng hóa âm, nuốt âm tự nhiên      │
-│     như người bản ngữ.                           │
-│                                                  │
-│  TỔNG ĐIỂM = 7.0 + tổng điểm cộng              │
-│  (Tối thiểu 7.0, tối đa 10.0)                   │
-└─────────────────────────────────────────────────┘
-
-CÁCH QUY ĐỔI TIÊU CHÍ SANG THANG 10 (cho criteriaScores):
-- Mỗi tiêu chí chấm nội bộ trên thang 10 để hiển thị chi tiết.
-- Ví dụ: Pronunciation = 8/10, Stress = 7/10, v.v.
-- Nhưng TỔNG ĐIỂM (score) phải tính theo công thức trên (7 + bonus).
+- Hãy chấm điểm từ 0 đến 10 cho từng tiêu chí trong 5 tiêu chí sau (trả về trong criteriaScores):
+  1. pronunciation: Phát âm chuẩn các âm (vowels, consonants, ending sounds).
+  2. stress: Nhấn đúng trọng âm từ.
+  3. intonation: Ngữ điệu câu lên/xuống tự nhiên.
+  4. fluency: Tốc độ đọc trôi chảy, không ngắt quãng quá nhiều.
+  5. connectedSpeech: Nối âm, nuốt âm tự nhiên.
+- TỔNG ĐIỂM (score) = Trung bình cộng của 5 tiêu chí trên (làm tròn đến 1 chữ số thập phân).
+  Ví dụ: Phát âm 9, Trọng âm 9, Ngữ điệu 8, Trôi chảy 9, Nối âm 9 -> Tổng điểm = (9+9+8+9+9)/5 = 8.8.
+  Hãy đảm bảo tổng điểm khớp hoàn toàn với trung bình cộng các tiêu chí.
 
 BƯỚC 4: XẾP LOẠI CEFR
 Dựa trên tổng điểm và trình độ target:
@@ -725,12 +699,25 @@ Output JSON:
   try {
     const result = parseSafeJson(response.text || "{}");
     
-    // Enforce scoring formula: isComplete=true → 7.0~10.0, isComplete=false → 0
+    // Enforce scoring formula: isComplete=true -> average of criteria, isComplete=false -> 0
     let finalScore = 0;
     if (result.isComplete !== false) {
-      finalScore = Math.max(7.0, Math.min(10.0, result.score || 7.0));
-      // Round to 1 decimal place
-      finalScore = Math.round(finalScore * 10) / 10;
+      if (result.criteriaScores && typeof result.criteriaScores === 'object') {
+        const cs = result.criteriaScores;
+        const p = Number(cs.pronunciation ?? 7);
+        const s = Number(cs.stress ?? 7);
+        const i = Number(cs.intonation ?? 7);
+        const f = Number(cs.fluency ?? 7);
+        const c = Number(cs.connectedSpeech ?? 7);
+        
+        // Calculate average of 5 criteria
+        const avg = (p + s + i + f + c) / 5;
+        finalScore = Math.round(avg * 10) / 10;
+      } else {
+        finalScore = Math.max(7.0, Math.min(10.0, result.score || 7.0));
+        finalScore = Math.round(finalScore * 10) / 10;
+      }
+      finalScore = Math.max(0.0, Math.min(10.0, finalScore));
     }
 
     return {

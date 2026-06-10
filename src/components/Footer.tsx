@@ -54,16 +54,16 @@ export const Footer: React.FC = () => (
         {/* Slogan */}
         <div className="space-y-6">
           <h4 className="text-brand-gold font-black uppercase tracking-[0.2em] relative inline-block">
-            SLOGAN
+            GIỚI THIỆU HỆ THỐNG NGOẠI NGỮ PALLAS
             <div className="absolute -bottom-2 left-0 w-full h-1 bg-white/10" />
           </h4>
           <div className="bg-white/5 border border-white/10 p-6 rounded-[2rem] space-y-4">
-            <p className="text-lg font-serif italic text-white font-bold leading-relaxed">
-              "Xây nền từ móng, chinh phục đỉnh cao"
+            <p className="text-xs text-slate-300 leading-relaxed">
+              Hệ thống Ngoại ngữ Pallas được xây dựng với sứ mệnh đồng hành cùng học sinh trên hành trình chinh phục tiếng Anh và Tiếng Trung, mở rộng tri thức và nuôi dưỡng những ước mơ hoài bão trong tương lai.
             </p>
             <div className="h-0.5 bg-white/10 w-full" />
-            <p className="text-base font-black text-brand-red uppercase tracking-widest text-[13px]">
-              PALLAS ENGLISH - MS TRANG
+            <p className="text-xs font-serif italic text-white font-bold leading-relaxed">
+              Pallas – nơi tri thức được trao truyền, ước mơ được nuôi dưỡng và những thế hệ học sinh được chắp cánh vươn xa
             </p>
           </div>
         </div>
