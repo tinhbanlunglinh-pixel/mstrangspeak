@@ -349,7 +349,11 @@ export default function App() {
         {/* Hero / Mode Selector */}
         <div className="mb-8 sm:mb-12 flex flex-col items-center justify-center text-center space-y-6">
           <motion.div initial={{ opacity: 0, y: 20 }} animate={{ opacity: 1, y: 0 }} className="flex flex-col items-center">
-            <BrandLogo className="w-14 h-14 sm:w-16 sm:h-16 mb-4" />
+            <img 
+              src="https://i.postimg.cc/6QCF87hB/2a-Obo-QZYBhy-WAs-Ju-KZv-QQv-YQ5n-BUFv7l-LMKc9u-Ii.jpg" 
+              alt="Ms Trang" 
+              className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-brand-gold shadow-lg mb-4 object-cover" 
+            />
             <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-brand-red-dark tracking-tighter uppercase mb-2">Pallas English - Luyện nói cùng Ms Trang AI</h2>
           </motion.div>
           

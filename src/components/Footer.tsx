@@ -14,7 +14,7 @@ export const Footer: React.FC = () => (
           </div>
           <div>
             <h3 className="text-2xl font-black text-brand-gold uppercase tracking-tight">Pallas English</h3>
-            <p className="text-slate-300 font-serif italic text-sm mt-1">"Xây nền từ móng, chinh phục đỉnh cao"</p>
+            <p className="text-slate-200 italic text-sm mt-1 font-semibold">"Xây nền từ móng, chinh phục đỉnh cao"</p>
             <p className="text-slate-400 text-xs mt-2 leading-relaxed">Pallas – nơi tri thức được trao truyền, ước mơ được nuôi dưỡng và những thế hệ học sinh được chắp cánh vươn xa.</p>
           </div>
         </div>
@@ -62,7 +62,7 @@ export const Footer: React.FC = () => (
               Hệ thống Ngoại ngữ Pallas được xây dựng với sứ mệnh đồng hành cùng học sinh trên hành trình chinh phục tiếng Anh và Tiếng Trung, mở rộng tri thức và nuôi dưỡng những ước mơ hoài bão trong tương lai.
             </p>
             <div className="h-0.5 bg-white/10 w-full" />
-            <p className="text-xs font-serif italic text-white font-bold leading-relaxed">
+            <p className="text-xs italic text-slate-200 leading-relaxed font-semibold">
               Pallas – nơi tri thức được trao truyền, ước mơ được nuôi dưỡng và những thế hệ học sinh được chắp cánh vươn xa
             </p>
           </div>
