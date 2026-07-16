@@ -30,7 +30,7 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
       <div className="flex flex-col items-center gap-2 p-3 bg-rose-50/20 rounded-xl border border-red-100">
         <div className="flex items-center gap-2 text-red-700 font-bold text-xs">
           <Mic size={16} className="text-red-400" />
-          <span>Ms Trang: Luyện nói cùng cô giáo</span>
+          <span>Trung tâm ngoại ngữ Pallas: Luyện nói</span>
         </div>
         
         {!evaluation && !isEvaluating && !isRecording && (

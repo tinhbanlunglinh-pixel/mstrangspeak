@@ -354,7 +354,7 @@ export default function App() {
               alt="Ms Trang" 
               className="w-16 h-16 sm:w-20 sm:h-20 rounded-full border-4 border-brand-gold shadow-lg mb-4 object-cover" 
             />
-            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-brand-red-dark tracking-tighter uppercase mb-2">Pallas English - Luyện nói cùng Ms Trang AI</h2>
+            <h2 className="text-xl sm:text-2xl md:text-3xl font-black text-brand-red-dark tracking-tighter uppercase mb-2">Trung tâm ngoại ngữ Pallas - Luyện nói cùng AI</h2>
           </motion.div>
           
           <div className="flex flex-wrap items-center justify-center gap-2 sm:gap-4 bg-slate-100/50 p-2 rounded-2xl border border-slate-200">

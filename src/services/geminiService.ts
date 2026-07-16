@@ -99,17 +99,17 @@ const getAI = () => {
   });
 };
 
-// Model fallback chain — use only currently available, non-deprecated models
+// Model fallback chain — use only currently available, non-deprecated models (Gemini 3.x generation)
 const TEXT_MODELS = [
-  "gemini-2.5-flash",
-  "gemini-2.5-flash-lite",
+  "gemini-3.5-flash",
+  "gemini-3.1-flash-lite",
 ];
 
 // TTS-specific models (only these support responseModalities: [AUDIO] with speechConfig)
 const TTS_MODELS = [
   "gemini-3.1-flash-tts-preview",
-  "gemini-2.5-flash-preview-tts",
-  "gemini-2.5-pro-preview-tts",
+  "gemini-2.5-flash-tts",
+  "gemini-2.5-pro-tts",
 ];
 
 export interface VocabularyItem {
@@ -333,10 +333,10 @@ export const generateImage = async (
   const fullPrompt = (prompt + qualitySuffix).substring(0, 500);
 
   try {
-    // Sử dụng Imagen 3 (của Google) thay vì Pollinations
+    // Sử dụng Gemini Image (của Google) thay vì Pollinations
     // Đây là model AI Studio dùng để tạo ảnh sắc nét
     const response = await getAI().models.generateImages({
-      model: 'imagen-3.0-generate-002',
+      model: 'gemini-3.1-flash-image',
       prompt: fullPrompt,
       config: {
         numberOfImages: 1,
