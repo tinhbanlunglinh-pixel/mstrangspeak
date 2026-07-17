@@ -633,9 +633,9 @@ BƯỚC 3: CÔNG THỨC TÍNH ĐIỂM (THANG 10)
   3. intonation: Ngữ điệu câu lên/xuống tự nhiên.
   4. fluency: Tốc độ đọc trôi chảy, không ngắt quãng quá nhiều.
   5. connectedSpeech: Nối âm, nuốt âm tự nhiên.
-- TỔNG ĐIỂM (score) = Trung bình cộng của 5 tiêu chí trên (làm tròn đến 1 chữ số thập phân).
-  Ví dụ: Phát âm 9, Trọng âm 9, Ngữ điệu 8, Trôi chảy 9, Nối âm 9 -> Tổng điểm = (9+9+8+9+9)/5 = 8.8.
-  Hãy đảm bảo tổng điểm khớp hoàn toàn với trung bình cộng các tiêu chí.
+- TỔNG ĐIỂM (score) = 7.0 + (Trung bình cộng của 5 tiêu chí trên / 10) * 3.0 (làm tròn đến 1 chữ số thập phân).
+  Ví dụ: Trung bình cộng 5 tiêu chí là 8.0 -> Tổng điểm = 7.0 + (8.0 / 10) * 3.0 = 9.4.
+  Hãy đảm bảo tổng điểm khớp hoàn toàn với công thức này.
 
 BƯỚC 4: XẾP LOẠI CEFR
 Dựa trên tổng điểm và trình độ target:
@@ -699,7 +699,7 @@ Output JSON:
   try {
     const result = parseSafeJson(response.text || "{}");
     
-    // Enforce scoring formula: isComplete=true -> average of criteria, isComplete=false -> 0
+    // Enforce scoring formula: isComplete=true -> 7 base + 3 from criteria, isComplete=false -> 0
     let finalScore = 0;
     if (result.isComplete !== false) {
       if (result.criteriaScores && typeof result.criteriaScores === 'object') {
@@ -712,7 +712,8 @@ Output JSON:
         
         // Calculate average of 5 criteria
         const avg = (p + s + i + f + c) / 5;
-        finalScore = Math.round(avg * 10) / 10;
+        const calculatedScore = 7.0 + (avg / 10) * 3.0;
+        finalScore = Math.round(calculatedScore * 10) / 10;
       } else {
         finalScore = Math.max(7.0, Math.min(10.0, result.score || 7.0));
         finalScore = Math.round(finalScore * 10) / 10;
