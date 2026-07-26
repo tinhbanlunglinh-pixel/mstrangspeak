@@ -462,7 +462,7 @@ export default function App() {
                       </div>
                       <p className="text-gray-500 font-medium animate-pulse text-center px-4">Gemini đang soạn bài đọc cho bạn...</p>
                     </motion.div>
-                  ) : readingText ? (
+                  ) : readingText !== null ? (
                     <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full flex flex-col items-center gap-4">
                       {/* Poster or Large Image */}
                       {isDescribeModeActive && imagePreview ? (
