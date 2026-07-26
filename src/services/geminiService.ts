@@ -854,8 +854,10 @@ Bạn sẽ nhận được CẢ HÌNH ẢNH và ĐOẠN ÂM THANH thu âm lời 
 📋 QUY TRÌNH CHẤM ĐIỂM
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
-BƯỚC 1: LẤY TRANSCRIPT
-- Cố gắng tối đa nhận diện lời nói của học sinh. Nếu có từ nói vấp, sai phát âm, hãy ghi nhận lại chính xác những gì bạn nghe được (hoặc đoán từ gần nhất học sinh định nói).
+BƯỚC 1: LẤY TRANSCRIPT VÀ SỬA LỖI TRỰC TIẾP (correctedTranscriptHtml)
+- Ghi lại CHÍNH XÁC những gì học sinh đã nói (không tự viết thêm hay sửa lại ý của học sinh).
+- Trả về 'transcript': văn bản gốc học sinh đã đọc.
+- Trả về 'correctedTranscriptHtml': là văn bản gốc nhưng được đánh dấu lỗi trực tiếp. Chỗ nào sai thì bọc trong thẻ <del style='color:red'>từ sai</del> và thêm từ đúng bên cạnh bằng thẻ <ins style='color:green;font-weight:bold'>từ đúng</ins>. Nếu học sinh thiếu từ, thêm vào bằng <ins...>. Nếu dư từ, bọc bằng <del...>.
 
 BƯỚC 2: CHẤM ĐIỂM 4 TIÊU CHÍ (THANG 10)
 Chấm điểm 4 tiêu chí sau:
@@ -865,16 +867,16 @@ Chấm điểm 4 tiêu chí sau:
   4. relevance (Đúng chủ đề): Nội dung nói có khớp với bức ảnh không, có mô tả đúng các chi tiết không.
 - TỔNG ĐIỂM (score) = Trung bình cộng của 4 tiêu chí trên (làm tròn 1 chữ số thập phân).
 
-BƯỚC 3: PHÂN TÍCH LỖI (Error Analysis)
-- Chỉ ra 2-4 lỗi sai tiêu biểu (về ngữ pháp, từ vựng, hoặc phát âm) dựa trên Transcript.
-- Cung cấp từ/câu sai (error), cách sửa đúng (correction) và giải thích ngắn gọn (explanation).
-
-BƯỚC 4: BÀI MẪU THAM KHẢO
-- Viết 1 đoạn văn mô tả bức ảnh này (khoảng 3-5 câu), dùng từ vựng và ngữ pháp phù hợp với trình độ ${level}. Đoạn văn tự nhiên, dễ học.
+BƯỚC 3: PHÂN TÍCH LỖI VÀ BÀI MẪU
+- Phân tích lỗi (errorAnalysis): giải thích ngắn gọn tại sao các chỗ gạch đỏ lại sai.
+- Bài mẫu (sampleDescription): Viết 1 đoạn văn mô tả bức ảnh này (khoảng 3-5 câu), dùng từ vựng và ngữ pháp phù hợp với trình độ ${level}. Đoạn văn tự nhiên, dễ học.
+- Tên chủ đề (topicName): Đặt một tên ngắn gọn cho bức ảnh (bằng tiếng Anh, ví dụ: "Family Picnic", "A Busy Classroom").
 
 Output JSON:
 {
   "transcript": string,
+  "correctedTranscriptHtml": string,
+  "topicName": string,
   "score": number (0 ~ 10, trung bình cộng 4 tiêu chí),
   "criteriaScores": { "pronunciation": number, "grammar": number, "vocabulary": number, "relevance": number } (mỗi tiêu chí thang 10),
   "feedback": string (Lời nhận xét chung của cô Trang, ấm áp, khuyến khích),
@@ -940,6 +942,8 @@ Output JSON:
     return {
       isImageDescription: true,
       transcript: result.transcript || "Không thể nhận diện giọng nói.",
+      correctedTranscriptHtml: result.correctedTranscriptHtml || "",
+      topicName: result.topicName || "Image Description",
       score: finalScore,
       criteriaScores: result.criteriaScores || { pronunciation: 0, grammar: 0, vocabulary: 0, relevance: 0 },
       feedback: result.feedback || "Không thể đánh giá.",

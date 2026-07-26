@@ -2,14 +2,14 @@ import React, { useRef, useEffect } from 'react';
 import { X, Download, RefreshCw, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import html2canvas from 'html2canvas';
-import { EvaluationResult, EnglishLevel } from '../types';
+import { EvaluationResult, EnglishLevel, ImageEvaluationResult } from '../types';
 
 interface CertificateModalProps {
   show: boolean;
   onClose: () => void;
-  evaluation: EvaluationResult | null;
+  evaluation: EvaluationResult | ImageEvaluationResult | null;
   studentName: string;
-  teacherName: string;
+  studentClass: string;
   generatedTopicName: string | null;
   topic: string;
   level: EnglishLevel;
@@ -20,7 +20,7 @@ interface CertificateModalProps {
 }
 
 export const CertificateModal: React.FC<CertificateModalProps> = ({
-  show, onClose, evaluation, studentName, teacherName,
+  show, onClose, evaluation, studentName, studentClass,
   generatedTopicName, topic, level, isDownloading, setIsDownloading, setError, exerciseScore
 }) => {
   const certificateRef = useRef<HTMLDivElement>(null);
@@ -108,9 +108,12 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                   <h2 className="text-3xl sm:text-6xl font-black pb-4 min-w-[200px] sm:min-w-[400px] font-serif italic" style={{ color: '#7F1D1D', borderBottom: '4px solid #FECACA' }}>
                     {studentName || "Little Star"}
                   </h2>
+                  {studentClass && (
+                    <p className="text-xl sm:text-2xl font-bold font-serif" style={{ color: '#4B5563' }}>Class: {studentClass}</p>
+                  )}
                   <div className="space-y-1">
                     <p className="text-base sm:text-xl font-medium" style={{ color: '#4B5563' }}>For outstanding performance in English Speaking</p>
-                    <p className="text-sm sm:text-lg font-bold italic" style={{ color: '#6B7280' }}>Topic: {generatedTopicName || topic || "General English"}</p>
+                    <p className="text-sm sm:text-lg font-bold italic" style={{ color: '#6B7280' }}>Topic: {('topicName' in evaluation ? evaluation.topicName : null) || generatedTopicName || topic || "English Speaking"}</p>
                   </div>
                   <div className="inline-block px-4 sm:px-6 py-2 rounded-full text-lg sm:text-2xl font-black uppercase tracking-widest" style={{ backgroundColor: '#FEF2F2', color: '#991B1B', border: '2px solid #FECACA' }}>
                     Level: {level}
@@ -120,7 +123,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center">
                   <div className="px-6 sm:px-10 py-4 sm:py-6 rounded-[2rem]" style={{ background: 'linear-gradient(to bottom right, #FEF2F2, #FECACA)', border: '4px solid #ffffff', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
                     <p className="text-[10px] sm:text-xs uppercase font-black tracking-[0.2em] mb-2" style={{ color: '#B91C1C' }}>Speaking Score</p>
-                    <p className="text-3xl sm:text-5xl font-black" style={{ color: '#991B1B', textShadow: '2px 2px 0 white' }}>{evaluation.criteriaScores ? (Math.round(((evaluation.criteriaScores.pronunciation + evaluation.criteriaScores.stress + evaluation.criteriaScores.intonation + evaluation.criteriaScores.fluency + evaluation.criteriaScores.connectedSpeech) / 5) * 10) / 10) : evaluation.score}<span className="text-lg sm:text-xl" style={{ color: '#EF4444' }}>/10</span></p>
+                    <p className="text-3xl sm:text-5xl font-black" style={{ color: '#991B1B', textShadow: '2px 2px 0 white' }}>{evaluation.score}<span className="text-lg sm:text-xl" style={{ color: '#EF4444' }}>/10</span></p>
                   </div>
                   {exerciseScore !== null && (
                     <div className="px-6 sm:px-10 py-4 sm:py-6 rounded-[2rem]" style={{ background: 'linear-gradient(to bottom right, #eff6ff, #dbeafe)', border: '4px solid #ffffff', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
@@ -137,7 +140,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                     <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest" style={{ color: '#B91C1C' }}>Date of Issue</p>
                   </div>
                   <div className="text-right flex flex-col items-end">
-                    <img src="https://i.postimg.cc/zXngmk3r/2a-Obo-Qn56i-FQWWBnllndzx2Pr-MN7PZ79cgx4KHf-E-Edited.png" alt="Signature" className="h-20 sm:h-28 object-contain" crossOrigin="anonymous" />
+                    <img src="https://i.postimg.cc/zXngmk3r/2a-Obo-Qn56i-FQWWBnllndzx2Pr-MN7PZ79cgx4KHf-E-Edited.png" alt="Signature" className="h-28 sm:h-36 object-contain" crossOrigin="anonymous" />
                   </div>
                 </div>
               </div>

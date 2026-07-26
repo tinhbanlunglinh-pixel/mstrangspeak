@@ -10,9 +10,9 @@ interface SpeechEvaluatorProps {
   isEvaluating: boolean;
   evaluation: EvaluationResult | ImageEvaluationResult | null;
   studentName: string;
-  teacherName: string;
+  studentClass: string;
   setStudentName: (name: string) => void;
-  setTeacherName: (name: string) => void;
+  setStudentClass: (name: string) => void;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
   onShowCertificate: () => void;
@@ -21,7 +21,7 @@ interface SpeechEvaluatorProps {
 
 export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
   readingText, isDescribeModeActive, isRecording, isEvaluating, evaluation,
-  studentName, teacherName, setStudentName, setTeacherName,
+  studentName, studentClass, setStudentName, setStudentClass,
   startRecording, stopRecording, onShowCertificate, isExerciseCompleted
 }) => {
   if (readingText === null) return null;
@@ -53,10 +53,10 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
               style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
             >
               <Square size={20} fill="currentColor" />
-              Đang nghe bé nói...
+              Đang nghe học sinh nói...
             </button>
             <p className="text-[10px] text-red-400 font-bold animate-pulse">
-              Mẹo: Sau khi đọc xong, bé chờ 1 giây rồi hãy nhấn nút dừng nhé!
+              Mẹo: Sau khi đọc xong, học sinh chờ 1 giây rồi hãy nhấn nút dừng nhé!
             </p>
           </>
         )}
@@ -65,8 +65,8 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
           <div className="flex flex-col items-center gap-3 py-4 animate-pulse">
             <RefreshCw className="animate-spin text-brand-red" size={32} />
             <div className="text-center">
-              <p className="text-sm font-black text-brand-red">Cô Trang đang nghe và chấm điểm cho con nhé...</p>
-              <p className="text-[10px] text-slate-400 font-medium">Bé chờ cô một chút xíu thôi!</p>
+              <p className="text-sm font-black text-brand-red">Cô Trang đang nghe và chấm điểm nhé...</p>
+              <p className="text-[10px] text-slate-400 font-medium">Học sinh chờ cô một chút xíu thôi!</p>
             </div>
           </div>
         )}
@@ -76,8 +76,8 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
             {'isImageDescription' in evaluation ? (
               <CompleteImageResult 
                 evaluation={evaluation} startRecording={startRecording}
-                studentName={studentName} teacherName={teacherName}
-                setStudentName={setStudentName} setTeacherName={setTeacherName}
+                studentName={studentName} studentClass={studentClass}
+                setStudentName={setStudentName} setStudentClass={setStudentClass}
                 onShowCertificate={onShowCertificate}
               />
             ) : !evaluation.isComplete ? (
@@ -85,8 +85,8 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
             ) : (
               <CompleteResult 
                 evaluation={evaluation} startRecording={startRecording}
-                studentName={studentName} teacherName={teacherName}
-                setStudentName={setStudentName} setTeacherName={setTeacherName}
+                studentName={studentName} studentClass={studentClass}
+                setStudentName={setStudentName} setStudentClass={setStudentClass}
                 onShowCertificate={onShowCertificate}
                 isExerciseCompleted={!!isExerciseCompleted}
               />
@@ -104,7 +104,7 @@ const IncompleteResult: React.FC<{ evaluation: EvaluationResult; startRecording:
       <div className="w-10 h-10 bg-red-100 rounded-full flex items-center justify-center"><RefreshCw size={20} /></div>
       <div>
         <div className="text-xs font-bold uppercase tracking-wider">Chưa hoàn thành</div>
-        <div className="text-sm font-medium">Bé cần đọc lại đầy đủ nhé!</div>
+        <div className="text-sm font-medium">Học sinh cần đọc lại đầy đủ nhé!</div>
       </div>
     </div>
     <p className="text-sm text-gray-700 leading-relaxed italic">"{evaluation.feedback}"</p>
@@ -120,11 +120,11 @@ const IncompleteResult: React.FC<{ evaluation: EvaluationResult; startRecording:
 const CompleteResult: React.FC<{
   evaluation: EvaluationResult;
   startRecording: () => Promise<void>;
-  studentName: string; teacherName: string;
-  setStudentName: (n: string) => void; setTeacherName: (n: string) => void;
+  studentName: string; studentClass: string;
+  setStudentName: (n: string) => void; setStudentClass: (n: string) => void;
   onShowCertificate: () => void;
   isExerciseCompleted: boolean;
-}> = ({ evaluation, startRecording, studentName, teacherName, setStudentName, setTeacherName, onShowCertificate, isExerciseCompleted }) => (
+}> = ({ evaluation, startRecording, studentName, studentClass, setStudentName, setStudentClass, onShowCertificate, isExerciseCompleted }) => (
   <>
     {/* Score */}
     <div className="flex items-center justify-between bg-gradient-to-br from-white to-rose-50 p-4 sm:p-6 rounded-2xl border-2 border-red-200 shadow-md">
@@ -135,7 +135,7 @@ const CompleteResult: React.FC<{
         <div>
           <div className="text-[10px] font-black text-red-600 uppercase tracking-widest">Điểm số</div>
           <div className="flex items-center gap-3">
-            <div className="text-3xl sm:text-4xl font-black text-red-700">{evaluation.criteriaScores ? (Math.round(((evaluation.criteriaScores.pronunciation + evaluation.criteriaScores.stress + evaluation.criteriaScores.intonation + evaluation.criteriaScores.fluency + evaluation.criteriaScores.connectedSpeech) / 5) * 10) / 10) : evaluation.score}</div>
+            <div className="text-3xl sm:text-4xl font-black text-red-700">{evaluation.score}</div>
           </div>
         </div>
       </div>
@@ -211,8 +211,8 @@ const CompleteResult: React.FC<{
                 <tr className="bg-slate-50">
                   <th className="p-2 sm:p-3 text-xs font-black text-slate-500 uppercase">Từ vựng</th>
                   <th className="p-2 sm:p-3 text-xs font-black text-green-600 uppercase">IPA Chuẩn</th>
-                  <th className="p-2 sm:p-3 text-xs font-black text-red-500 uppercase">Bé đọc</th>
-                  <th className="p-2 sm:p-3 text-xs font-black text-indigo-400 uppercase">Mẹo cho bé</th>
+                  <th className="p-2 sm:p-3 text-xs font-black text-red-500 uppercase">Học sinh đọc</th>
+                  <th className="p-2 sm:p-3 text-xs font-black text-indigo-400 uppercase">Mẹo cho học sinh</th>
                 </tr>
               </thead>
               <tbody className="divide-y divide-slate-50">
@@ -250,24 +250,24 @@ const CompleteResult: React.FC<{
         </div>
       )}
 
-      {/* Certificate Inputs */}
       <div className="pt-4 border-t border-indigo-50 space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase">Tên học sinh</label>
-            <input type="text" value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Nhập tên bé..."
+            <label className="text-[10px] font-bold text-gray-400 uppercase">Tên học sinh *</label>
+            <input type="text" value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Nhập tên học sinh..."
               className="w-full px-3 py-2 text-xs border border-indigo-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase">Tên giáo viên</label>
-            <input type="text" value={teacherName} onChange={(e) => setTeacherName(e.target.value)} placeholder="Tên giáo viên..."
+            <label className="text-[10px] font-bold text-gray-400 uppercase">Lớp *</label>
+            <input type="text" value={studentClass} onChange={(e) => setStudentClass(e.target.value)} placeholder="Nhập tên lớp..."
               className="w-full px-3 py-2 text-xs border border-indigo-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
           </div>
         </div>
         <button onClick={onShowCertificate}
-          className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 hover:shadow-orange-200 hover:-translate-y-1"
+          disabled={!studentName.trim() || !studentClass.trim()}
+          className={`w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg ${studentName.trim() && studentClass.trim() ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 hover:shadow-orange-200 hover:-translate-y-1' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
         >
-          <Trophy size={20} className="animate-bounce" /> NHẬN GIẤY CHỨNG NHẬN NGAY!
+          <Trophy size={20} className={studentName.trim() && studentClass.trim() ? "animate-bounce" : ""} /> NHẬN GIẤY CHỨNG NHẬN NGAY!
         </button>
       </div>
     </div>
@@ -277,10 +277,10 @@ const CompleteResult: React.FC<{
 const CompleteImageResult: React.FC<{
   evaluation: ImageEvaluationResult;
   startRecording: () => Promise<void>;
-  studentName: string; teacherName: string;
-  setStudentName: (n: string) => void; setTeacherName: (n: string) => void;
+  studentName: string; studentClass: string;
+  setStudentName: (n: string) => void; setStudentClass: (n: string) => void;
   onShowCertificate: () => void;
-}> = ({ evaluation, startRecording, studentName, teacherName, setStudentName, setTeacherName, onShowCertificate }) => (
+}> = ({ evaluation, startRecording, studentName, studentClass, setStudentName, setStudentClass, onShowCertificate }) => (
   <>
     {/* Score */}
     <div className="flex items-center justify-between bg-gradient-to-br from-white to-rose-50 p-4 sm:p-6 rounded-2xl border-2 border-red-200 shadow-md">
@@ -300,8 +300,12 @@ const CompleteImageResult: React.FC<{
 
     {/* Transcript */}
     <div className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
-      <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-2">Bé đã nói:</div>
-      <p className="text-sm font-medium text-slate-700 italic">"{evaluation.transcript}"</p>
+      <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-2">Học sinh đã nói:</div>
+      {evaluation.correctedTranscriptHtml ? (
+        <p className="text-sm font-medium text-slate-700 italic leading-relaxed" dangerouslySetInnerHTML={{ __html: `"${evaluation.correctedTranscriptHtml}"` }}></p>
+      ) : (
+        <p className="text-sm font-medium text-slate-700 italic leading-relaxed">"{evaluation.transcript}"</p>
+      )}
     </div>
 
     {/* Criteria Scores */}
@@ -399,24 +403,24 @@ const CompleteImageResult: React.FC<{
         </div>
       )}
 
-      {/* Certificate Inputs */}
       <div className="pt-4 border-t border-indigo-50 space-y-3">
         <div className="grid grid-cols-2 gap-3">
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase">Tên học sinh</label>
-            <input type="text" value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Nhập tên bé..."
+            <label className="text-[10px] font-bold text-gray-400 uppercase">Tên học sinh *</label>
+            <input type="text" value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Nhập tên học sinh..."
               className="w-full px-3 py-2 text-xs border border-indigo-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
           </div>
           <div className="space-y-1">
-            <label className="text-[10px] font-bold text-gray-400 uppercase">Tên giáo viên</label>
-            <input type="text" value={teacherName} onChange={(e) => setTeacherName(e.target.value)} placeholder="Tên giáo viên..."
+            <label className="text-[10px] font-bold text-gray-400 uppercase">Lớp *</label>
+            <input type="text" value={studentClass} onChange={(e) => setStudentClass(e.target.value)} placeholder="Nhập tên lớp..."
               className="w-full px-3 py-2 text-xs border border-indigo-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
           </div>
         </div>
         <button onClick={onShowCertificate}
-          className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 hover:shadow-orange-200 hover:-translate-y-1"
+          disabled={!studentName.trim() || !studentClass.trim()}
+          className={`w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg ${studentName.trim() && studentClass.trim() ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 hover:shadow-orange-200 hover:-translate-y-1' : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
         >
-          <Trophy size={20} className="animate-bounce" /> NHẬN GIẤY CHỨNG NHẬN NGAY!
+          <Trophy size={20} className={studentName.trim() && studentClass.trim() ? "animate-bounce" : ""} /> NHẬN GIẤY CHỨNG NHẬN NGAY!
         </button>
       </div>
     </div>
