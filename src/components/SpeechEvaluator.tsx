@@ -1,13 +1,14 @@
 import React from 'react';
 import { Mic, Square, RefreshCw, Star, ThumbsUp, CheckCircle, AlertCircle, Zap, Trophy, Target } from 'lucide-react';
 import { motion } from 'motion/react';
-import { EvaluationResult } from '../types';
+import { EvaluationResult, ImageEvaluationResult } from '../types';
 
 interface SpeechEvaluatorProps {
   readingText: string | null;
+  isDescribeModeActive?: boolean;
   isRecording: boolean;
   isEvaluating: boolean;
-  evaluation: EvaluationResult | null;
+  evaluation: EvaluationResult | ImageEvaluationResult | null;
   studentName: string;
   teacherName: string;
   setStudentName: (name: string) => void;
@@ -19,11 +20,11 @@ interface SpeechEvaluatorProps {
 }
 
 export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
-  readingText, isRecording, isEvaluating, evaluation,
+  readingText, isDescribeModeActive, isRecording, isEvaluating, evaluation,
   studentName, teacherName, setStudentName, setTeacherName,
   startRecording, stopRecording, onShowCertificate, isExerciseCompleted
 }) => {
-  if (!readingText) return null;
+  if (readingText === null) return null;
 
   return (
     <div className="w-full max-w-[600px] mt-1 space-y-2">
@@ -40,7 +41,7 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
             style={{ textShadow: '0 2px 4px rgba(0,0,0,0.1)' }}
           >
             <Mic size={20} />
-            Bắt đầu luyện nói
+            {isDescribeModeActive ? "Bắt đầu thu âm mô tả" : "Bắt đầu luyện nói"}
           </button>
         )}
 
@@ -72,7 +73,14 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
 
         {evaluation && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full space-y-4">
-            {!evaluation.isComplete ? (
+            {'isImageDescription' in evaluation ? (
+              <CompleteImageResult 
+                evaluation={evaluation} startRecording={startRecording}
+                studentName={studentName} teacherName={teacherName}
+                setStudentName={setStudentName} setTeacherName={setTeacherName}
+                onShowCertificate={onShowCertificate}
+              />
+            ) : !evaluation.isComplete ? (
               <IncompleteResult evaluation={evaluation} startRecording={startRecording} />
             ) : (
               <CompleteResult 
@@ -125,10 +133,9 @@ const CompleteResult: React.FC<{
           <Star size={28} fill="currentColor" />
         </div>
         <div>
-          <div className="text-[10px] font-black text-red-600 uppercase tracking-widest">Điểm số & Xếp loại CEFR</div>
+          <div className="text-[10px] font-black text-red-600 uppercase tracking-widest">Điểm số</div>
           <div className="flex items-center gap-3">
-            <div className="text-3xl sm:text-4xl font-black text-red-700">{evaluation.score}</div>
-            <div className="px-3 py-1 bg-brand-red text-white rounded-lg text-sm font-black shadow-sm">{evaluation.cefrLevel}</div>
+            <div className="text-3xl sm:text-4xl font-black text-red-700">{evaluation.criteriaScores ? (Math.round(((evaluation.criteriaScores.pronunciation + evaluation.criteriaScores.stress + evaluation.criteriaScores.intonation + evaluation.criteriaScores.fluency + evaluation.criteriaScores.connectedSpeech) / 5) * 10) / 10) : evaluation.score}</div>
           </div>
         </div>
       </div>
@@ -258,17 +265,158 @@ const CompleteResult: React.FC<{
           </div>
         </div>
         <button onClick={onShowCertificate}
-          disabled={!isExerciseCompleted}
-          className={`w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg 
-            ${isExerciseCompleted 
-              ? 'bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 hover:shadow-orange-200 hover:-translate-y-1' 
-              : 'bg-slate-200 text-slate-400 cursor-not-allowed'}`}
+          className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 hover:shadow-orange-200 hover:-translate-y-1"
         >
-          {isExerciseCompleted ? (
-            <><Trophy size={20} className="animate-bounce" /> NHẬN GIẤY CHỨNG NHẬN NGAY!</>
-          ) : (
-            <><Trophy size={20} /> HOÀN THÀNH BÀI TẬP ĐỂ NHẬN CHỨNG NHẬN</>
-          )}
+          <Trophy size={20} className="animate-bounce" /> NHẬN GIẤY CHỨNG NHẬN NGAY!
+        </button>
+      </div>
+    </div>
+  </>
+);
+
+const CompleteImageResult: React.FC<{
+  evaluation: ImageEvaluationResult;
+  startRecording: () => Promise<void>;
+  studentName: string; teacherName: string;
+  setStudentName: (n: string) => void; setTeacherName: (n: string) => void;
+  onShowCertificate: () => void;
+}> = ({ evaluation, startRecording, studentName, teacherName, setStudentName, setTeacherName, onShowCertificate }) => (
+  <>
+    {/* Score */}
+    <div className="flex items-center justify-between bg-gradient-to-br from-white to-rose-50 p-4 sm:p-6 rounded-2xl border-2 border-red-200 shadow-md">
+      <div className="flex items-center gap-3 sm:gap-4">
+        <div className="w-12 h-12 sm:w-16 sm:h-16 bg-brand-gold rounded-2xl flex items-center justify-center text-white shadow-lg shadow-brand-gold/20 rotate-3">
+          <Star size={28} fill="currentColor" />
+        </div>
+        <div>
+          <div className="text-[10px] font-black text-red-600 uppercase tracking-widest">Điểm số mô tả</div>
+          <div className="flex items-center gap-3">
+            <div className="text-3xl sm:text-4xl font-black text-red-700">{evaluation.score}</div>
+          </div>
+        </div>
+      </div>
+      <button onClick={startRecording} className="px-3 sm:px-4 py-2 bg-white text-red-600 border-2 border-red-100 rounded-xl font-bold text-xs sm:text-sm hover:border-brand-red transition-all shadow-sm active:scale-95">Thử lại</button>
+    </div>
+
+    {/* Transcript */}
+    <div className="bg-white p-4 rounded-xl border border-indigo-100 shadow-sm">
+      <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-2">Bé đã nói:</div>
+      <p className="text-sm font-medium text-slate-700 italic">"{evaluation.transcript}"</p>
+    </div>
+
+    {/* Criteria Scores */}
+    {evaluation.criteriaScores && (
+      <div className="space-y-2">
+        <div className="flex items-center justify-between px-1">
+          <span className="text-[10px] font-bold text-red-600 uppercase tracking-wider">Tiêu chí chấm điểm</span>
+        </div>
+        <div className="grid grid-cols-2 sm:grid-cols-4 gap-2 sm:gap-3 bg-white p-3 sm:p-4 rounded-2xl border-2 border-red-50 shadow-sm">
+          {Object.entries(evaluation.criteriaScores).map(([key, score]) => (
+            <div key={key} className="text-center p-2 sm:p-3 rounded-xl bg-rose-50/30 border border-red-100">
+              <div className="text-[8px] sm:text-[9px] font-bold text-red-400 uppercase leading-tight mb-1">
+                {key === 'pronunciation' ? 'Phát âm' : key === 'grammar' ? 'Ngữ pháp' : key === 'vocabulary' ? 'Từ vựng' : 'Đúng chủ đề'}
+              </div>
+              <div className="text-lg font-black text-red-600">{score}</div>
+            </div>
+          ))}
+        </div>
+      </div>
+    )}
+
+    {/* Feedback */}
+    <div className="bg-white p-4 sm:p-6 rounded-2xl border-2 border-red-100 shadow-md space-y-6">
+      <div className="flex items-start gap-3 bg-green-50 p-3 sm:p-4 rounded-xl border border-green-100">
+        <ThumbsUp size={24} className="text-green-500 mt-0.5 shrink-0" />
+        <p className="text-sm sm:text-base font-medium text-slate-800 leading-relaxed italic">"{evaluation.feedback}"</p>
+      </div>
+
+      <div className="grid grid-cols-1 md:grid-cols-2 gap-4 sm:gap-6">
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-green-600">
+            <div className="w-6 h-6 bg-green-100 rounded-md flex items-center justify-center"><CheckCircle size={14} /></div>
+            <div className="text-xs font-black uppercase tracking-wider">Ưu điểm nổi bật</div>
+          </div>
+          <div className="space-y-2">
+            {evaluation.strengths.map((s, i) => (
+              <div key={i} className="text-sm font-medium text-slate-700 flex items-start gap-2 bg-green-50/30 p-2 rounded-lg">
+                <div className="w-1.5 h-1.5 bg-green-400 rounded-full mt-1.5 shrink-0" /> {s}
+              </div>
+            ))}
+          </div>
+        </div>
+        <div className="space-y-3">
+          <div className="flex items-center gap-2 text-orange-600">
+            <div className="w-6 h-6 bg-orange-100 rounded-md flex items-center justify-center"><AlertCircle size={14} /></div>
+            <div className="text-xs font-black uppercase tracking-wider">Cần chú ý thêm</div>
+          </div>
+          <div className="space-y-2">
+            {evaluation.improvements.map((imp, i) => (
+              <div key={i} className="text-sm font-medium text-slate-700 flex items-start gap-2 bg-orange-50/30 p-2 rounded-lg">
+                <div className="w-1.5 h-1.5 bg-orange-400 rounded-full mt-1.5 shrink-0" /> {imp}
+              </div>
+            ))}
+          </div>
+        </div>
+      </div>
+
+      {/* Error Analysis */}
+      {evaluation.errorAnalysis && evaluation.errorAnalysis.length > 0 && (
+        <div className="pt-4 border-t-2 border-slate-50">
+          <div className="flex items-center gap-2 text-indigo-600 mb-4">
+            <div className="w-8 h-8 bg-indigo-100 rounded-lg flex items-center justify-center"><Zap size={18} /></div>
+            <div className="text-xs font-black uppercase tracking-widest">Phân tích lỗi & Sửa lỗi</div>
+          </div>
+          <div className="overflow-x-auto rounded-xl border border-slate-100 shadow-sm">
+            <table className="w-full text-left border-collapse min-w-[400px]">
+              <thead>
+                <tr className="bg-slate-50">
+                  <th className="p-2 sm:p-3 text-xs font-black text-red-500 uppercase">Câu sai</th>
+                  <th className="p-2 sm:p-3 text-xs font-black text-green-600 uppercase">Sửa lại</th>
+                  <th className="p-2 sm:p-3 text-xs font-black text-indigo-400 uppercase">Giải thích</th>
+                </tr>
+              </thead>
+              <tbody className="divide-y divide-slate-50">
+                {evaluation.errorAnalysis.map((item, idx) => (
+                  <tr key={idx} className="hover:bg-indigo-50/20 transition-colors">
+                    <td className="p-2 sm:p-3 text-sm font-bold text-red-500">{item.error}</td>
+                    <td className="p-2 sm:p-3 text-sm font-bold text-green-600">{item.correction}</td>
+                    <td className="p-2 sm:p-3 text-xs text-slate-500 font-medium leading-relaxed">{item.explanation}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
+        </div>
+      )}
+
+      {/* Sample Description */}
+      {evaluation.sampleDescription && (
+        <div className="pt-3 border-t border-gray-100 space-y-3">
+          <div>
+            <div className="text-[10px] font-bold text-indigo-600 uppercase tracking-wider mb-1">Bài mẫu tham khảo</div>
+            <p className="text-sm font-medium text-gray-700 bg-indigo-50/50 p-3 rounded-lg border border-indigo-100">{evaluation.sampleDescription}</p>
+          </div>
+        </div>
+      )}
+
+      {/* Certificate Inputs */}
+      <div className="pt-4 border-t border-indigo-50 space-y-3">
+        <div className="grid grid-cols-2 gap-3">
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-400 uppercase">Tên học sinh</label>
+            <input type="text" value={studentName} onChange={(e) => setStudentName(e.target.value)} placeholder="Nhập tên bé..."
+              className="w-full px-3 py-2 text-xs border border-indigo-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+          </div>
+          <div className="space-y-1">
+            <label className="text-[10px] font-bold text-gray-400 uppercase">Tên giáo viên</label>
+            <input type="text" value={teacherName} onChange={(e) => setTeacherName(e.target.value)} placeholder="Tên giáo viên..."
+              className="w-full px-3 py-2 text-xs border border-indigo-100 rounded-lg focus:outline-none focus:ring-2 focus:ring-indigo-500/20" />
+          </div>
+        </div>
+        <button onClick={onShowCertificate}
+          className="w-full py-3.5 rounded-2xl font-black text-sm flex items-center justify-center gap-2 transition-all shadow-lg bg-gradient-to-r from-yellow-400 to-orange-500 text-white hover:from-yellow-500 hover:to-orange-600 hover:shadow-orange-200 hover:-translate-y-1"
+        >
+          <Trophy size={20} className="animate-bounce" /> NHẬN GIẤY CHỨNG NHẬN NGAY!
         </button>
       </div>
     </div>

@@ -117,7 +117,7 @@ export const InputPanel: React.FC<InputPanelProps> = (props) => {
             className={`w-full py-3.5 sm:py-4 rounded-2xl font-black text-white shadow-xl transition-all flex items-center justify-center gap-2 text-base sm:text-lg
               ${isGenerating ? 'bg-slate-300 cursor-not-allowed' : 'bg-gradient-to-r from-red-600 to-brand-red hover:from-red-700 hover:to-red-900 active:scale-[0.98] shadow-red-100'}`}
           >
-            {isGenerating ? <><RefreshCw className="animate-spin" size={24} /> Đang chuẩn bị...</> : <><Sparkles size={24} className="animate-pulse" /> Bắt đầu học ngay!</>}
+            {isGenerating ? <><RefreshCw className="animate-spin" size={24} /> Đang chuẩn bị...</> : <><Sparkles size={24} className="animate-pulse" /> {contentMode === "image" ? "Bắt đầu mô tả ảnh!" : "Bắt đầu học ngay!"}</>}
           </button>
 
           {/* Error with Retry */}

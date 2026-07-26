@@ -57,6 +57,7 @@ export default function App() {
   const [generatedTopicName, setGeneratedTopicName] = useState<string | null>(null);
   const [exerciseData, setExerciseData] = useState<ExerciseData | null>(null);
   const [exerciseScore, setExerciseScore] = useState<number | null>(null);
+  const [isDescribeModeActive, setIsDescribeModeActive] = useState(false);
 
   // UI state
   const [isDownloading, setIsDownloading] = useState(false);
@@ -70,7 +71,7 @@ export default function App() {
   // Custom hooks
   const fileProcessor = useFileProcessor(setTopic, setImagePreview, setContentMode, setError, contentMode);
   const audioPlayer = useAudioPlayer(readingText, level, setError);
-  const recorder = useRecorder(readingText, level, setError);
+  const recorder = useRecorder(readingText, level, setError, isDescribeModeActive ? imagePreview : null);
   const lessonHistory = useLessonHistory();
 
   // API Key check on mount
@@ -80,9 +81,8 @@ export default function App() {
     }
   }, [apiKey, hasEnvKey]);
 
-  // Save score to history when evaluation completes
   React.useEffect(() => {
-    if (recorder.evaluation && recorder.evaluation.isComplete && currentLessonId && recorder.evaluation.score > 0) {
+    if (recorder.evaluation && ('isComplete' in recorder.evaluation ? recorder.evaluation.isComplete : true) && currentLessonId && recorder.evaluation.score > 0) {
       lessonHistory.updateScore(currentLessonId, recorder.evaluation.score);
     }
   }, [recorder.evaluation]);
@@ -103,6 +103,15 @@ export default function App() {
     setIsGenerating(true);
     setError(null);
     setReadingText(null);
+    setIsDescribeModeActive(false);
+
+    if (contentMode === "image") {
+      setIsDescribeModeActive(true);
+      setReadingText(""); // Make it non-null to trigger result panel
+      setIsGenerating(false);
+      recorder.setEvaluation(null);
+      return;
+    }
 
     try {
       // 1. Generate content
@@ -417,7 +426,7 @@ export default function App() {
                   <span className="text-[10px] font-black text-red-500 uppercase tracking-[0.2em] mb-1">Nội dung học tập siêu hấp dẫn</span>
                   <div className="flex items-center gap-3">
                     <div className="w-8 h-8 bg-brand-red rounded-full flex items-center justify-center text-white shadow-sm"><ImageIcon size={16} /></div>
-                    <span className="text-xs sm:text-sm font-black text-brand-red-dark uppercase tracking-widest">Góc Học Tập Của Bé</span>
+                    <span className="text-xs sm:text-sm font-black text-brand-red-dark uppercase tracking-widest">Góc Học Tập Của Học Sinh</span>
                     {readingText && <span className="px-3 py-1 bg-red-200 text-red-900 text-[10px] font-black rounded-full shadow-sm uppercase">{level}</span>}
                   </div>
                 </div>
@@ -455,27 +464,32 @@ export default function App() {
                     </motion.div>
                   ) : readingText ? (
                     <motion.div key="result" initial={{ opacity: 0, scale: 0.95 }} animate={{ opacity: 1, scale: 1 }} className="w-full flex flex-col items-center gap-4">
-                      {/* Poster */}
-                      <PosterPreview
-                        readingText={readingText}
-                        translationText={translationText} vocabulary={vocabulary}
-                        generatedTopicName={generatedTopicName} topic={topic} level={level}
-                        showTranslation={showTranslation}
-                        audioUrl={audioPlayer.audioUrl} audioRef={audioPlayer.audioRef}
-                        isPlaying={audioPlayer.isPlaying} isAudioLoading={audioPlayer.isAudioLoading}
-                        isBrowserTTS={audioPlayer.isBrowserTTS}
-                        setIsPlaying={audioPlayer.setIsPlaying} handlePlayAudio={audioPlayer.handlePlayAudio}
-                        isDownloading={isDownloading}
-                        onDownloadPoster={downloadPoster}
-                        onToggleTranslation={() => setShowTranslation(!showTranslation)}
-                        posterRef={posterRef}
-                      />
-
-
+                      {/* Poster or Large Image */}
+                      {isDescribeModeActive && imagePreview ? (
+                        <div className="w-full max-w-[800px] mb-6">
+                          <img src={imagePreview} alt="Image to describe" className="w-full h-auto rounded-3xl border-4 border-red-100 shadow-xl object-contain" style={{ maxHeight: '60vh' }} />
+                        </div>
+                      ) : (
+                        <PosterPreview
+                          readingText={readingText}
+                          translationText={translationText} vocabulary={vocabulary}
+                          generatedTopicName={generatedTopicName} topic={topic} level={level}
+                          showTranslation={showTranslation}
+                          audioUrl={audioPlayer.audioUrl} audioRef={audioPlayer.audioRef}
+                          isPlaying={audioPlayer.isPlaying} isAudioLoading={audioPlayer.isAudioLoading}
+                          isBrowserTTS={audioPlayer.isBrowserTTS}
+                          setIsPlaying={audioPlayer.setIsPlaying} handlePlayAudio={audioPlayer.handlePlayAudio}
+                          isDownloading={isDownloading}
+                          onDownloadPoster={downloadPoster}
+                          onToggleTranslation={() => setShowTranslation(!showTranslation)}
+                          posterRef={posterRef}
+                        />
+                      )}
 
                       {/* Speech Evaluator */}
                       <SpeechEvaluator
                         readingText={readingText}
+                        isDescribeModeActive={isDescribeModeActive}
                         isRecording={recorder.isRecording}
                         isEvaluating={recorder.isEvaluating}
                         evaluation={recorder.evaluation}
@@ -484,13 +498,14 @@ export default function App() {
                         startRecording={recorder.startRecording}
                         stopRecording={recorder.stopRecording}
                         onShowCertificate={() => setShowCertificate(true)}
-                        isExerciseCompleted={exerciseScore !== null}
+                        isExerciseCompleted={isDescribeModeActive ? true : exerciseScore !== null}
                       />
 
-                      {/* Exercise Section */}
-                      {!exerciseData ? (
-                        <div className="w-full max-w-[800px] p-6 bg-amber-50/75 rounded-2xl border-2 border-dashed border-amber-200 flex flex-col items-center justify-center text-center space-y-3">
-                          <span className="text-2xl">📝</span>
+                      {/* Exercise Section (hidden in describe mode) */}
+                      {!isDescribeModeActive && (
+                        !exerciseData ? (
+                          <div className="w-full max-w-[800px] p-6 bg-amber-50/75 rounded-2xl border-2 border-dashed border-amber-200 flex flex-col items-center justify-center text-center space-y-3">
+                            <span className="text-2xl">📝</span>
                           <div>
                             <h4 className="font-bold text-amber-900 text-sm sm:text-base">Bài học chưa có phần bài tập</h4>
                             <p className="text-xs text-amber-700/80 mt-1 max-w-md">Do kết nối mạng hoặc quá tải hệ thống từ Google. Bạn hãy nhấn nút dưới đây để tạo bài tập ngay nhé!</p>
@@ -522,12 +537,13 @@ export default function App() {
                             Tạo phần bài tập
                           </button>
                         </div>
-                      ) : (
-                        <ExerciseSection 
-                          exerciseData={exerciseData} 
-                          savedScore={exerciseScore} 
-                          onComplete={handleExerciseComplete} 
-                        />
+                        ) : (
+                          <ExerciseSection 
+                            exerciseData={exerciseData} 
+                            savedScore={exerciseScore} 
+                            onComplete={handleExerciseComplete} 
+                          />
+                        )
                       )}
 
                       {/* Certificate Modal */}

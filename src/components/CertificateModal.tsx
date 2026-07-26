@@ -1,4 +1,4 @@
-import React, { useRef } from 'react';
+import React, { useRef, useEffect } from 'react';
 import { X, Download, RefreshCw, Trophy } from 'lucide-react';
 import { motion, AnimatePresence } from 'motion/react';
 import html2canvas from 'html2canvas';
@@ -55,6 +55,16 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
     }
   };
 
+  // Auto-download certificate as image when modal opens
+  useEffect(() => {
+    if (show && evaluation && certificateRef.current) {
+      const timer = setTimeout(() => {
+        downloadCertificate();
+      }, 1500); // Wait for render to complete
+      return () => clearTimeout(timer);
+    }
+  }, [show, evaluation]);
+
   return (
     <AnimatePresence>
       {show && evaluation && (
@@ -75,7 +85,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
             <div className="p-4 sm:p-8 overflow-auto max-h-[80vh]">
               <div 
                 ref={certificateRef} data-certificate-container
-                className="relative w-full aspect-[1.414/1] bg-white p-6 sm:p-12 flex flex-col items-center justify-between text-center font-serif"
+                className="relative w-full min-h-[600px] sm:min-h-[800px] h-auto bg-white p-6 sm:p-12 pb-12 flex flex-col items-center text-center font-serif gap-8"
                 style={{ border: '16px double #B91C1C', backgroundImage: 'radial-gradient(circle at 2px 2px, #FEF2F2 1px, transparent 0)', backgroundSize: '32px 32px', backgroundColor: '#ffffff' }}
               >
                 {/* Corners */}
@@ -110,7 +120,7 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                 <div className="flex flex-col sm:flex-row gap-4 sm:gap-8 justify-center">
                   <div className="px-6 sm:px-10 py-4 sm:py-6 rounded-[2rem]" style={{ background: 'linear-gradient(to bottom right, #FEF2F2, #FECACA)', border: '4px solid #ffffff', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
                     <p className="text-[10px] sm:text-xs uppercase font-black tracking-[0.2em] mb-2" style={{ color: '#B91C1C' }}>Speaking Score</p>
-                    <p className="text-3xl sm:text-5xl font-black" style={{ color: '#991B1B', textShadow: '2px 2px 0 white' }}>{evaluation.score}<span className="text-lg sm:text-xl" style={{ color: '#EF4444' }}>/10</span></p>
+                    <p className="text-3xl sm:text-5xl font-black" style={{ color: '#991B1B', textShadow: '2px 2px 0 white' }}>{evaluation.criteriaScores ? (Math.round(((evaluation.criteriaScores.pronunciation + evaluation.criteriaScores.stress + evaluation.criteriaScores.intonation + evaluation.criteriaScores.fluency + evaluation.criteriaScores.connectedSpeech) / 5) * 10) / 10) : evaluation.score}<span className="text-lg sm:text-xl" style={{ color: '#EF4444' }}>/10</span></p>
                   </div>
                   {exerciseScore !== null && (
                     <div className="px-6 sm:px-10 py-4 sm:py-6 rounded-[2rem]" style={{ background: 'linear-gradient(to bottom right, #eff6ff, #dbeafe)', border: '4px solid #ffffff', boxShadow: '0 20px 25px -5px rgba(0, 0, 0, 0.1)' }}>
@@ -120,16 +130,14 @@ export const CertificateModal: React.FC<CertificateModalProps> = ({
                   )}
                 </div>
 
-                <div className="w-full flex justify-between items-end pt-8 sm:pt-12 px-4 sm:px-8">
-                  <div className="text-left space-y-2">
+                <div className="w-full flex justify-between items-end pt-8 sm:pt-12 px-4 sm:px-8 mt-auto">
+                  <div className="text-left space-y-2 mb-4">
                     <p className="text-xs sm:text-sm font-black" style={{ color: '#7F1D1D' }}>{new Date().toLocaleDateString('vi-VN')}</p>
                     <div className="w-32 sm:w-48" style={{ borderBottom: '2px solid #FECACA' }} />
                     <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest" style={{ color: '#B91C1C' }}>Date of Issue</p>
                   </div>
-                  <div className="text-right space-y-2">
-                    <p className="text-base sm:text-xl font-black font-serif italic" style={{ color: '#7F1D1D' }}>{teacherName}</p>
-                    <div className="w-32 sm:w-48" style={{ borderBottom: '2px solid #FECACA' }} />
-                    <p className="text-[8px] sm:text-[10px] font-black uppercase tracking-widest" style={{ color: '#B91C1C' }}>Head Teacher</p>
+                  <div className="text-right flex flex-col items-end">
+                    <img src="https://i.postimg.cc/zXngmk3r/2a-Obo-Qn56i-FQWWBnllndzx2Pr-MN7PZ79cgx4KHf-E-Edited.png" alt="Signature" className="h-20 sm:h-28 object-contain" crossOrigin="anonymous" />
                   </div>
                 </div>
               </div>

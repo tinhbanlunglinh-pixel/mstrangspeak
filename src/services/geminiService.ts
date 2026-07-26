@@ -602,6 +602,27 @@ export interface EvaluationResult {
   personalizedExercises?: string[];
 }
 
+export interface ImageEvaluationResult {
+  isImageDescription: true;
+  transcript: string;
+  score: number;
+  criteriaScores: {
+    pronunciation: number;
+    grammar: number;
+    vocabulary: number;
+    relevance: number;
+  };
+  feedback: string;
+  strengths: string[];
+  improvements: string[];
+  errorAnalysis: {
+    error: string;
+    correction: string;
+    explanation: string;
+  }[];
+  sampleDescription: string;
+}
+
 export const evaluateSpeech = async (
   originalText: string,
   audioData: string,
@@ -633,18 +654,11 @@ BƯỚC 3: CÔNG THỨC TÍNH ĐIỂM (THANG 10)
   3. intonation: Ngữ điệu câu lên/xuống tự nhiên.
   4. fluency: Tốc độ đọc trôi chảy, không ngắt quãng quá nhiều.
   5. connectedSpeech: Nối âm, nuốt âm tự nhiên.
-- TỔNG ĐIỂM (score) = 7.0 + (Trung bình cộng của 5 tiêu chí trên / 10) * 3.0 (làm tròn đến 1 chữ số thập phân).
-  Ví dụ: Trung bình cộng 5 tiêu chí là 8.0 -> Tổng điểm = 7.0 + (8.0 / 10) * 3.0 = 9.4.
+- TỔNG ĐIỂM (score) = Trung bình cộng của 5 tiêu chí trên (làm tròn đến 1 chữ số thập phân).
+  Ví dụ: Nếu pronunciation=9, stress=9, intonation=9, fluency=9, connectedSpeech=9 -> Tổng điểm = (9+9+9+9+9)/5 = 9.0.
   Hãy đảm bảo tổng điểm khớp hoàn toàn với công thức này.
 
-BƯỚC 4: XẾP LOẠI CEFR
-Dựa trên tổng điểm và trình độ target:
-- 9.0-10.0: Xuất sắc (C1-C2 nếu level cao, hoặc vượt trội so với level)
-- 8.0-8.9: Giỏi (B2+)
-- 7.5-7.9: Khá (B1-B2)
-- 7.0-7.4: Đạt yêu cầu (A2-B1)
-
-BƯỚC 5: PHÂN TÍCH IPA
+BƯỚC 4: PHÂN TÍCH IPA
 - Chỉ ra 3-5 từ phát âm chưa chuẩn nhất, IPA chuẩn vs IPA người đọc.
 - Gợi ý cách sửa cụ thể (khẩu hình miệng, vị trí lưỡi, cách bật hơi).
 
@@ -659,8 +673,7 @@ Output JSON:
 {
   "isComplete": boolean,
   "missingContent": string (phần bị thiếu, rỗng nếu đọc đủ),
-  "score": number (7.0 ~ 10.0, theo công thức trên),
-  "cefrLevel": string,
+  "score": number (0 ~ 10, trung bình cộng 5 tiêu chí),
   "criteriaScores": { "pronunciation": number, "stress": number, "intonation": number, "fluency": number, "connectedSpeech": number } (mỗi tiêu chí thang 10),
   "feedback": string,
   "ipaAnalysis": [ { "word": string, "correctIpa": string, "studentIpa": string, "tip": string } ],
@@ -679,7 +692,7 @@ Output JSON:
       {
         role: "user",
         parts: [
-          { text: `Original Text (bài gốc): ${originalText}\nTarget Level: ${level}\n\nHãy nghe kỹ file audio bên dưới. Người đọc đang đọc bài gốc ở trên. Cố gắng hết sức để nhận diện giọng nói và chấm điểm theo công thức: Điểm nền 7 + điểm cộng CEFR (tối đa 3).` },
+          { text: `Original Text (bài gốc): ${originalText}\nTarget Level: ${level}\n\nHãy nghe kỹ file audio bên dưới. Người đọc đang đọc bài gốc ở trên. Cố gắng hết sức để nhận diện giọng nói và chấm điểm theo công thức: Tổng điểm = Trung bình cộng của 5 tiêu chí.` },
           {
             inlineData: {
               mimeType: cleanMimeType,
@@ -710,12 +723,11 @@ Output JSON:
         const f = Number(cs.fluency ?? 7);
         const c = Number(cs.connectedSpeech ?? 7);
         
-        // Calculate average of 5 criteria
+        // Calculate average of 5 criteria (accurate sum)
         const avg = (p + s + i + f + c) / 5;
-        const calculatedScore = 7.0 + (avg / 10) * 3.0;
-        finalScore = Math.round(calculatedScore * 10) / 10;
+        finalScore = Math.round(avg * 10) / 10;
       } else {
-        finalScore = Math.max(7.0, Math.min(10.0, result.score || 7.0));
+        finalScore = Math.max(0, Math.min(10.0, result.score || 0));
         finalScore = Math.round(finalScore * 10) / 10;
       }
       finalScore = Math.max(0.0, Math.min(10.0, finalScore));
@@ -823,5 +835,127 @@ Output strictly a JSON object matching this schema:
   } catch (err: any) {
     console.error("Exercise Generation Error:", err);
     throw new Error("Failed to generate exercise. Please try again.");
+  }
+};
+
+export const evaluateImageDescription = async (
+  imageBase64: string,
+  audioData: string,
+  level: EnglishLevel,
+  mimeType: string = "audio/webm"
+): Promise<ImageEvaluationResult> => {
+  const systemInstruction = `Bạn là Ms Trang — giáo viên tiếng Anh chấm bài thi nói mô tả tranh.
+Học sinh ở trình độ ${level}. Học sinh được yêu cầu quan sát một bức ảnh và mô tả nó bằng tiếng Anh.
+Bạn sẽ nhận được CẢ HÌNH ẢNH và ĐOẠN ÂM THANH thu âm lời nói của học sinh.
+
+🎯 NHIỆM VỤ: Nghe âm thanh → Chuyển thành văn bản (Transcript) → So sánh nội dung với bức ảnh → Chấm điểm thang 10.
+
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+📋 QUY TRÌNH CHẤM ĐIỂM
+━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
+
+BƯỚC 1: LẤY TRANSCRIPT
+- Cố gắng tối đa nhận diện lời nói của học sinh. Nếu có từ nói vấp, sai phát âm, hãy ghi nhận lại chính xác những gì bạn nghe được (hoặc đoán từ gần nhất học sinh định nói).
+
+BƯỚC 2: CHẤM ĐIỂM 4 TIÊU CHÍ (THANG 10)
+Chấm điểm 4 tiêu chí sau:
+  1. pronunciation (Phát âm): Rõ ràng, dễ nghe, trọng âm và âm cuối.
+  2. grammar (Ngữ pháp): Cấu trúc câu đúng, dùng thì (tense) phù hợp khi mô tả tranh (thường là HTTD hoặc HTĐ).
+  3. vocabulary (Từ vựng): Dùng từ đa dạng, chính xác để mô tả các chi tiết trong ảnh.
+  4. relevance (Đúng chủ đề): Nội dung nói có khớp với bức ảnh không, có mô tả đúng các chi tiết không.
+- TỔNG ĐIỂM (score) = Trung bình cộng của 4 tiêu chí trên (làm tròn 1 chữ số thập phân).
+
+BƯỚC 3: PHÂN TÍCH LỖI (Error Analysis)
+- Chỉ ra 2-4 lỗi sai tiêu biểu (về ngữ pháp, từ vựng, hoặc phát âm) dựa trên Transcript.
+- Cung cấp từ/câu sai (error), cách sửa đúng (correction) và giải thích ngắn gọn (explanation).
+
+BƯỚC 4: BÀI MẪU THAM KHẢO
+- Viết 1 đoạn văn mô tả bức ảnh này (khoảng 3-5 câu), dùng từ vựng và ngữ pháp phù hợp với trình độ ${level}. Đoạn văn tự nhiên, dễ học.
+
+Output JSON:
+{
+  "transcript": string,
+  "score": number (0 ~ 10, trung bình cộng 4 tiêu chí),
+  "criteriaScores": { "pronunciation": number, "grammar": number, "vocabulary": number, "relevance": number } (mỗi tiêu chí thang 10),
+  "feedback": string (Lời nhận xét chung của cô Trang, ấm áp, khuyến khích),
+  "strengths": string[] (1-3 điểm mạnh),
+  "improvements": string[] (1-3 điểm cần cải thiện),
+  "errorAnalysis": [ { "error": string, "correction": string, "explanation": string } ],
+  "sampleDescription": string
+}`;
+
+  const cleanMimeType = mimeType.split(';')[0].trim() || "audio/webm";
+  console.log(`[Image Eval] Sending audio+image: audio=${cleanMimeType}(${audioData.length}), image=${imageBase64.substring(0,20)}...`);
+
+  // Strip prefix if any (e.g., data:image/jpeg;base64,)
+  const base64Img = imageBase64.includes(',') ? imageBase64.split(',')[1] : imageBase64;
+  const mimeTypeImg = imageBase64.match(/data:(.*?);base64/)?.[1] || "image/jpeg";
+
+  const response = await generateWithFallback(TEXT_MODELS, {
+    contents: [
+      {
+        role: "user",
+        parts: [
+          { text: `Target Level: ${level}\n\nHãy xem bức ảnh và nghe file audio bên dưới. Ghi ra Transcript, chấm điểm dựa vào mức độ mô tả đúng bức ảnh, và sửa lỗi cho học sinh.` },
+          {
+            inlineData: {
+              mimeType: mimeTypeImg,
+              data: base64Img,
+            },
+          },
+          {
+            inlineData: {
+              mimeType: cleanMimeType,
+              data: audioData,
+            },
+          },
+        ],
+      },
+    ],
+    config: { 
+      systemInstruction,
+      responseMimeType: "application/json",
+      maxOutputTokens: 8192
+    },
+  });
+
+  try {
+    const result = parseSafeJson(response.text || "{}");
+    
+    let finalScore = 0;
+    if (result.criteriaScores && typeof result.criteriaScores === 'object') {
+      const cs = result.criteriaScores;
+      const p = Number(cs.pronunciation ?? 7);
+      const g = Number(cs.grammar ?? 7);
+      const v = Number(cs.vocabulary ?? 7);
+      const r = Number(cs.relevance ?? 7);
+      
+      const avg = (p + g + v + r) / 4;
+      finalScore = Math.round(avg * 10) / 10;
+    } else {
+      finalScore = Math.max(0, Math.min(10.0, result.score || 0));
+      finalScore = Math.round(finalScore * 10) / 10;
+    }
+
+    return {
+      isImageDescription: true,
+      transcript: result.transcript || "Không thể nhận diện giọng nói.",
+      score: finalScore,
+      criteriaScores: result.criteriaScores || { pronunciation: 0, grammar: 0, vocabulary: 0, relevance: 0 },
+      feedback: result.feedback || "Không thể đánh giá.",
+      strengths: result.strengths || [],
+      improvements: result.improvements || [],
+      errorAnalysis: result.errorAnalysis || [],
+      sampleDescription: result.sampleDescription || "Vui lòng thử lại."
+    } as ImageEvaluationResult;
+  } catch (err: any) {
+    console.error("Image Description Evaluation Error:", err);
+    if (isQuotaError(err)) {
+      throw new Error("QUOTA_EXCEEDED");
+    }
+    if (isAuthError(err)) {
+      throw new Error("INVALID_KEY");
+    }
+    throw new Error(err?.message || "Failed to evaluate image description. Please try again.");
   }
 };

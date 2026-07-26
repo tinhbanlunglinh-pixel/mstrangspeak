@@ -1,6 +1,6 @@
-import { EvaluationResult, EnglishLevel, VocabularyItem } from '../services/geminiService';
+import { EvaluationResult, ImageEvaluationResult, EnglishLevel, VocabularyItem } from '../services/geminiService';
 
-export type { EvaluationResult, EnglishLevel, VocabularyItem };
+export type { EvaluationResult, ImageEvaluationResult, EnglishLevel, VocabularyItem };
 
 export type AspectRatio = "1:1" | "3:4" | "4:3" | "9:16" | "16:9";
 export type ContentMode = "generate" | "useInput" | "image";
@@ -88,7 +88,7 @@ export interface AppState {
   // Recording
   isRecording: boolean;
   isEvaluating: boolean;
-  evaluation: EvaluationResult | null;
+  evaluation: EvaluationResult | ImageEvaluationResult | null;
   studentName: string;
   teacherName: string;
   showCertificate: boolean;

@@ -1,12 +1,12 @@
 import { useState, useRef, useCallback } from 'react';
-import { evaluateSpeech } from '../services/geminiService';
-import { EnglishLevel, EvaluationResult } from '../types';
+import { evaluateSpeech, evaluateImageDescription } from '../services/geminiService';
+import { EnglishLevel, EvaluationResult, ImageEvaluationResult } from '../types';
 
 interface UseRecorderReturn {
   isRecording: boolean;
   isEvaluating: boolean;
-  evaluation: EvaluationResult | null;
-  setEvaluation: (evaluation: EvaluationResult | null) => void;
+  evaluation: EvaluationResult | ImageEvaluationResult | null;
+  setEvaluation: (evaluation: EvaluationResult | ImageEvaluationResult | null) => void;
   startRecording: () => Promise<void>;
   stopRecording: () => void;
 }
@@ -14,11 +14,12 @@ interface UseRecorderReturn {
 export function useRecorder(
   readingText: string | null,
   level: EnglishLevel,
-  setError: (error: string | null) => void
+  setError: (error: string | null) => void,
+  imagePreview: string | null = null
 ): UseRecorderReturn {
   const [isRecording, setIsRecording] = useState(false);
   const [isEvaluating, setIsEvaluating] = useState(false);
-  const [evaluation, setEvaluation] = useState<EvaluationResult | null>(null);
+  const [evaluation, setEvaluation] = useState<EvaluationResult | ImageEvaluationResult | null>(null);
   const mediaRecorderRef = useRef<MediaRecorder | null>(null);
   const audioChunksRef = useRef<Blob[]>([]);
 
@@ -26,19 +27,22 @@ export function useRecorder(
   const isRecordingRef = useRef(false);
   const readingTextRef = useRef(readingText);
   const levelRef = useRef(level);
+  const imagePreviewRef = useRef(imagePreview);
 
   // Keep refs in sync with props/state
   readingTextRef.current = readingText;
   levelRef.current = level;
+  imagePreviewRef.current = imagePreview;
 
   const handleEvaluate = useCallback(async (audioBlob: Blob, mimeType: string) => {
     const currentText = readingTextRef.current;
     const currentLevel = levelRef.current;
+    const currentImage = imagePreviewRef.current;
 
-    if (!currentText) {
-      console.error("handleEvaluate: readingText is null, cannot evaluate");
+    if (!currentText && !currentImage) {
+      console.error("handleEvaluate: readingText and imagePreview are both null, cannot evaluate");
       setIsEvaluating(false);
-      setError("Không có nội dung bài đọc để chấm điểm. Vui lòng tạo bài đọc trước.");
+      setError("Không có nội dung bài đọc hoặc ảnh để chấm điểm.");
       return;
     }
 
@@ -67,7 +71,12 @@ export function useRecorder(
 
       // ── Step 2: Send raw base64 to Gemini for evaluation ──
       // Gemini natively accepts audio/webm, audio/mp4, audio/ogg, audio/wav, audio/mp3
-      const result = await evaluateSpeech(currentText, base64Audio, currentLevel, mimeType);
+      let result;
+      if (currentImage) {
+        result = await evaluateImageDescription(currentImage, base64Audio, currentLevel, mimeType);
+      } else {
+        result = await evaluateSpeech(currentText!, base64Audio, currentLevel, mimeType);
+      }
       setEvaluation(result);
       setIsEvaluating(false);
     } catch (err: any) {
