@@ -855,9 +855,9 @@ Bạn sẽ nhận được CẢ HÌNH ẢNH và ĐOẠN ÂM THANH thu âm lời 
 ━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━━
 
 BƯỚC 1: LẤY TRANSCRIPT VÀ SỬA LỖI TRỰC TIẾP (correctedTranscriptHtml)
-- Ghi lại CHÍNH XÁC những gì học sinh đã nói (không tự viết thêm hay sửa lại ý của học sinh).
-- Trả về 'transcript': văn bản gốc học sinh đã đọc.
-- Trả về 'correctedTranscriptHtml': là văn bản gốc nhưng được đánh dấu lỗi trực tiếp. Chỗ nào sai thì bọc trong thẻ <del style='color:red'>từ sai</del> và thêm từ đúng bên cạnh bằng thẻ <ins style='color:green;font-weight:bold'>từ đúng</ins>. Nếu học sinh thiếu từ, thêm vào bằng <ins...>. Nếu dư từ, bọc bằng <del...>.
+- 🚨 NHIỆM VỤ QUAN TRỌNG NHẤT VÀ KIÊN QUYẾT: Trả về 'transcript' CHÍNH XÁC ĐẾN TỪNG CHỮ (100%) mà học sinh đã thực sự phát âm ra từ file ghi âm, kể cả khi họ nói sai, ngập ngừng, ấp úng, lặp từ, hay sai ngữ pháp.
+- TUYỆT ĐỐI KHÔNG được tự động sửa lỗi ngữ pháp trong phần transcript, KHÔNG tự làm cho câu văn trôi chảy hơn, KHÔNG tự thêm bớt từ, KHÔNG ĐƯỢC ĐOÁN Ý HỌC SINH ĐỂ VIẾT LẠI cho đúng chuẩn. (Ví dụ: học sinh nói "he... he go to school", phải ghi đúng "he... he go to school", cấm ghi thành "he goes to school").
+- Trả về 'correctedTranscriptHtml': Lấy nguyên bản 'transcript' thô ở trên, sau đó đánh dấu lỗi trực tiếp. Chỗ nào sai thì bọc trong thẻ <del style='color:red;text-decoration:line-through;'>từ sai</del> và thêm từ đúng bên cạnh bằng thẻ <ins style='color:green;font-weight:bold;text-decoration:underline;'>từ đúng</ins>. Nếu học sinh thiếu từ, thêm vào bằng <ins...>. Nếu dư từ, bọc bằng <del...>. LƯU Ý: Những phần học sinh nói đúng phải giữ nguyên y hệt, không được diễn đạt lại.
 
 BƯỚC 2: CHẤM ĐIỂM 4 TIÊU CHÍ (THANG 10)
 Chấm điểm 4 tiêu chí sau:
