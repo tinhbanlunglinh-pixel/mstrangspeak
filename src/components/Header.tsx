@@ -4,10 +4,11 @@ import { BrandLogo } from './BrandLogo';
 
 interface HeaderProps {
   apiKey: string;
+  hasEnvKey?: boolean;
   onOpenApiKeyModal: () => void;
 }
 
-export const Header: React.FC<HeaderProps> = ({ apiKey, onOpenApiKeyModal }) => (
+export const Header: React.FC<HeaderProps> = ({ apiKey, hasEnvKey, onOpenApiKeyModal }) => (
   <header className="bg-brand-red border-b border-brand-red-dark sticky top-0 z-50 shadow-lg">
     <div className="max-w-6xl mx-auto px-3 sm:px-4 h-16 sm:h-20 flex items-center justify-between">
       <div className="flex items-center gap-2 sm:gap-4 min-w-0">
@@ -24,7 +25,7 @@ export const Header: React.FC<HeaderProps> = ({ apiKey, onOpenApiKeyModal }) => 
             <Zap size={14} className="text-brand-gold sm:w-4 sm:h-4" />
             <span className="text-xs sm:text-sm font-black text-white whitespace-nowrap">Cài đặt API Key</span>
           </div>
-          {!apiKey && (
+          {!apiKey && !hasEnvKey && (
             <span className="text-[9px] sm:text-[10px] font-bold text-red-500 mt-1 animate-pulse bg-white/90 px-2 py-0.5 rounded-full shadow-sm">
               Lấy API key để sử dụng app
             </span>

@@ -99,10 +99,12 @@ const getAI = () => {
   });
 };
 
-// Model fallback chain — use only currently available, non-deprecated models (Gemini 3.x generation)
+// Model fallback chain — newest to oldest for best performance
 const TEXT_MODELS = [
   "gemini-3.5-flash",
   "gemini-3.1-flash-lite",
+  "gemini-2.5-flash",          // fallback to 2.5 generation
+  "gemini-2.5-flash-lite",     // lightest fallback
 ];
 
 // TTS-specific models (only these support responseModalities: [AUDIO] with speechConfig)
@@ -857,9 +859,9 @@ Bạn sẽ nhận được CẢ HÌNH ẢNH và ĐOẠN ÂM THANH thu âm lời 
 BƯỚC 1: LẤY TRANSCRIPT TỪ FILE ÂM THANH (TUYỆT ĐỐI KHÔNG BỊA RA TỪ HÌNH ẢNH)
 - 🚨 NHIỆM VỤ QUAN TRỌNG NHẤT: Bạn phải nghe file âm thanh và trả về 'transcript' CHÍNH XÁC ĐẾN TỪNG CHỮ (100%) mà học sinh đã thực sự phát âm.
 - LƯU Ý VÔ CÙNG QUAN TRỌNG: TUYỆT ĐỐI KHÔNG được nhìn vào hình ảnh để tự sáng tác, tự bịa ra câu trả lời cho học sinh. Chỉ được phép ghi lại những gì có trong AUDIO.
-- Nếu audio không có tiếng người, ồn, hoặc không nghe rõ, hãy trả về transcript là: "Không nghe rõ giọng nói."
-- TUYỆT ĐỐI KHÔNG được tự động sửa lỗi ngữ pháp trong phần transcript, KHÔNG tự làm cho câu văn trôi chảy hơn. (Ví dụ: học sinh nói "he... he go to school", phải ghi đúng "he... he go to school", cấm ghi thành "he goes to school").
-- Trả về 'correctedTranscriptHtml': Lấy nguyên bản 'transcript' thô ở trên, sau đó đánh dấu lỗi trực tiếp. Chỗ nào sai thì bọc trong thẻ <del style='color:red;text-decoration:line-through;'>từ sai</del> và thêm từ đúng bên cạnh bằng thẻ <ins style='color:green;font-weight:bold;text-decoration:underline;'>từ đúng</ins>. Nếu học sinh thiếu từ, thêm vào bằng <ins...>. Nếu dư từ, bọc bằng <del...>. LƯU Ý: Những phần học sinh nói đúng phải giữ nguyên y hệt, không được diễn đạt lại.
+- ⚠️ CHỈ trả về transcript là "Không nghe rõ giọng nói." khi audio THỰC SỰ hoàn toàn không có giọng người (im lặng hoàn toàn, chỉ có tiếng ồn, tiếng nhạc mà không có giọng nói). Nếu nghe được dù chỉ VÀI TỪ thì vẫn phải ghi lại những từ đó, KHÔNG được trả về "Không nghe rõ".
+- TUYỆT ĐỐI KHÔNG được tự động sửa lỗi ngữ pháp trong phần transcript. (Ví dụ: học sinh nói "he... he go to school", phải ghi đúng "he... he go to school".)
+- Trả về 'correctedTranscriptHtml': Lấy nguyên bản 'transcript' thô ở trên, sau đó đánh dấu lỗi. Chỗ nào sai thì bọc trong <del style='color:red;text-decoration:line-through;'>từ sai</del> và thêm từ đúng bằng <ins style='color:green;font-weight:bold;text-decoration:underline;'>từ đúng</ins>. Nếu thiếu từ, thêm vào bằng <ins...>. Nếu dư từ, bọc bằng <del...>.
 
 BƯỚC 2: CHẤM ĐIỂM 4 TIÊU CHÍ (THANG 10)
 Chấm điểm 4 tiêu chí sau:
@@ -867,11 +869,15 @@ Chấm điểm 4 tiêu chí sau:
   2. grammar (Ngữ pháp): Cấu trúc câu đúng, dùng thì (tense) phù hợp khi mô tả tranh (thường là HTTD hoặc HTĐ).
   3. vocabulary (Từ vựng): Dùng từ đa dạng, chính xác để mô tả các chi tiết trong ảnh.
   4. relevance (Đúng chủ đề): Nội dung nói có khớp với bức ảnh không, có mô tả đúng các chi tiết không.
+     🚨 QUAN TRỌNG VỀ TIÊU CHÍ relevance:
+     - Nếu học sinh mô tả ĐÚNG nội dung ảnh (dù ngữ pháp/từ vựng còn yếu): relevance >= 5
+     - Nếu học sinh mô tả SAI hoàn toàn, nói nội dung không liên quan đến ảnh, hoặc chỉ nói vài từ không rõ nghĩa: relevance < 3
+     - Hãy chấm THẬT NGHIÊM TÚC tiêu chí này — đừng cho điểm cao nếu nội dung không khớp ảnh.
 - TỔNG ĐIỂM (score) = Trung bình cộng của 4 tiêu chí trên (làm tròn 1 chữ số thập phân).
 
 BƯỚC 3: PHÂN TÍCH LỖI VÀ BÀI MẪU
 - Phân tích lỗi (errorAnalysis): giải thích ngắn gọn tại sao các chỗ gạch đỏ lại sai.
-- Bài mẫu (sampleDescription): Viết 1 đoạn văn mô tả bức ảnh này (khoảng 3-5 câu), dùng từ vựng và ngữ pháp phù hợp với trình độ ${level}. Đoạn văn tự nhiên, dễ học.
+- Bài mẫu (sampleDescription): Viết 1 đoạn văn mô tả bức ảnh này (khoảng 3-5 câu), dùng từ vựng và ngữ pháp phù hợp với trình độ ${level}. Đoạn văn tự nhiên, dễ học. LUÔN LUÔN trả về sampleDescription — kể cả khi học sinh nói sai, đây là gợi ý để học sinh học cách mô tả đúng.
 - Tên chủ đề (topicName): Đặt một tên ngắn gọn cho bức ảnh (bằng tiếng Anh, ví dụ: "Family Picnic", "A Busy Classroom").
 
 Output JSON:

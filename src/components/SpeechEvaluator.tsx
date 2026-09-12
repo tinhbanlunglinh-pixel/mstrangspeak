@@ -74,12 +74,21 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
         {evaluation && (
           <motion.div initial={{ opacity: 0, y: 10 }} animate={{ opacity: 1, y: 0 }} className="w-full space-y-4">
             {'isImageDescription' in evaluation ? (
-              <CompleteImageResult 
-                evaluation={evaluation} startRecording={startRecording}
-                studentName={studentName} studentClass={studentClass}
-                setStudentName={setStudentName} setStudentClass={setStudentClass}
-                onShowCertificate={onShowCertificate}
-              />
+              (() => {
+                const cannotHear = evaluation.transcript?.includes('Không nghe rõ') || evaluation.transcript?.includes('không nghe rõ') || evaluation.transcript?.includes('Không thể nhận diện');
+                const relevanceScore = evaluation.criteriaScores?.relevance ?? 10;
+                const isOffTopic = !cannotHear && relevanceScore < 3;
+                if (cannotHear) return <CannotHearResult startRecording={startRecording} />;
+                if (isOffTopic) return <OffTopicResult evaluation={evaluation} startRecording={startRecording} />;
+                return (
+                  <CompleteImageResult
+                    evaluation={evaluation} startRecording={startRecording}
+                    studentName={studentName} studentClass={studentClass}
+                    setStudentName={setStudentName} setStudentClass={setStudentClass}
+                    onShowCertificate={onShowCertificate}
+                  />
+                );
+              })()
             ) : !evaluation.isComplete ? (
               <IncompleteResult evaluation={evaluation} startRecording={startRecording} />
             ) : (
@@ -97,6 +106,71 @@ export const SpeechEvaluator: React.FC<SpeechEvaluatorProps> = ({
     </div>
   );
 };
+
+// ── Không nghe được giọng nói ──
+const CannotHearResult: React.FC<{ startRecording: () => Promise<void> }> = ({ startRecording }) => (
+  <div className="bg-amber-50 p-4 rounded-xl border-2 border-amber-200 shadow-sm space-y-3">
+    <div className="flex items-center gap-3 text-amber-700">
+      <div className="w-12 h-12 bg-amber-100 rounded-full flex items-center justify-center text-2xl shrink-0">🎤</div>
+      <div>
+        <div className="text-sm font-black">Cô Trang chưa nghe rõ giọng của con!</div>
+        <div className="text-xs font-medium text-amber-600 mt-0.5">Có thể do micro quá nhỏ hoặc nhiều tiếng ồn xung quanh.</div>
+      </div>
+    </div>
+    <div className="bg-white/70 p-3 rounded-xl border border-amber-100 space-y-1.5">
+      <p className="text-xs font-black text-amber-800 uppercase tracking-wide">Hãy thử lại và lưu ý:</p>
+      <ul className="text-xs text-amber-800 space-y-1 list-none">
+        <li>🔊 Nói to, rõ ràng hơn vào micro</li>
+        <li>📵 Tắt các tiếng ồn xung quanh (quạt, TV, nói chuyện...)</li>
+        <li>📱 Đưa thiết bị gần miệng hơn (cách 15-30cm)</li>
+        <li>✅ Chờ đến khi nút "Đang nghe..." xuất hiện rồi mới bắt đầu đọc</li>
+      </ul>
+    </div>
+    <button onClick={startRecording} className="w-full py-3 bg-amber-500 hover:bg-amber-600 text-white rounded-2xl font-black text-sm transition-all active:scale-95 shadow-md">
+      🎙️ Thử lại ngay
+    </button>
+  </div>
+);
+
+// ── Nội dung không khớp với ảnh ──
+const OffTopicResult: React.FC<{ evaluation: ImageEvaluationResult; startRecording: () => Promise<void> }> = ({ evaluation, startRecording }) => (
+  <div className="bg-blue-50 p-4 rounded-xl border-2 border-blue-200 shadow-sm space-y-3">
+    <div className="flex items-center gap-3 text-blue-700">
+      <div className="w-12 h-12 bg-blue-100 rounded-full flex items-center justify-center text-2xl shrink-0">🖼️</div>
+      <div>
+        <div className="text-sm font-black">Hãy mô tả đúng bức ảnh con nhé!</div>
+        <div className="text-xs font-medium text-blue-600 mt-0.5">Nội dung con vừa nói chưa khớp với những gì cô thấy trong ảnh.</div>
+      </div>
+    </div>
+
+    {evaluation.transcript && (
+      <div className="bg-white p-3 rounded-xl border border-blue-100">
+        <p className="text-[10px] font-black text-blue-500 uppercase tracking-wider mb-1">Con đã nói:</p>
+        <p className="text-sm italic text-slate-600 leading-relaxed">"{evaluation.transcript}"</p>
+      </div>
+    )}
+
+    {evaluation.sampleDescription && (
+      <div className="bg-white p-3 rounded-xl border border-green-100">
+        <p className="text-[10px] font-black text-green-600 uppercase tracking-wider mb-1">💡 Gợi ý cô Trang — Thử mô tả như thế này:</p>
+        <p className="text-sm text-slate-700 leading-relaxed italic">"{evaluation.sampleDescription}"</p>
+      </div>
+    )}
+
+    <div className="bg-white/70 p-3 rounded-xl border border-blue-100">
+      <p className="text-xs font-black text-blue-800 uppercase tracking-wide mb-1.5">Mẹo mô tả ảnh tiếng Anh:</p>
+      <ul className="text-xs text-blue-800 space-y-1">
+        <li>👀 Nhìn kỹ ảnh trước — có gì, ai, ở đâu?</li>
+        <li>📝 Bắt đầu bằng: "In this picture, I can see..."</li>
+        <li>🎨 Mô tả màu sắc, hành động, vị trí trong ảnh</li>
+      </ul>
+    </div>
+
+    <button onClick={startRecording} className="w-full py-3 bg-blue-600 hover:bg-blue-700 text-white rounded-2xl font-black text-sm transition-all active:scale-95 shadow-md">
+      🎙️ Mô tả lại bức ảnh
+    </button>
+  </div>
+);
 
 const IncompleteResult: React.FC<{ evaluation: EvaluationResult; startRecording: () => Promise<void> }> = ({ evaluation, startRecording }) => (
   <div className="bg-red-50 p-4 rounded-xl border border-red-100 shadow-sm space-y-3">

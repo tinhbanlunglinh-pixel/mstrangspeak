@@ -333,7 +333,7 @@ export default function App() {
       </div>
 
       {/* Header */}
-      <Header apiKey={apiKey} onOpenApiKeyModal={() => setShowApiKeyModal(true)} />
+      <Header apiKey={apiKey} hasEnvKey={hasEnvKey} onOpenApiKeyModal={() => setShowApiKeyModal(true)} />
 
       {/* API Key Modal */}
       <ApiKeyModal 
